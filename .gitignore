@@ -1,0 +1,11 @@
+# Compiled executable
+/zerosh
+
+# Object files
+*.o
+
+# Core dumps
+core
+
+# Build directory
+/build/
