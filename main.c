@@ -4,7 +4,7 @@
 int main(void)
 {
 
-    char input[10];
+    char buff[256];
 
     printf("Welcome to ZeroSH....\n");
 
@@ -13,24 +13,41 @@ int main(void)
 
         printf("zerosh>");
 
-        if (scanf("%9s", input) != 1)
+        fgets(buff, sizeof(buff), stdin);
+
+        char *input = strtok(buff, " \t\n");
+
+        if (input == NULL)
         {
-            break;
+            continue;
         }
 
-        if (strcmp(input, "exit") == 0)
+        else if (strcmp(input, "exit") == 0)
         {
             printf("Bye\n");
             break;
         }
 
-        if (strcmp(input, "test") == 0)
+        else if (strcmp(input, "test") == 0)
         {
             printf("This is a test\n");
         }
-        
+
+        else if (strcmp(input, "about") == 0)
+        {
+            printf("This is ZeroSH a shell written in C\n");
+        }
+
+        else if (strcmp(input, "help") == 0)
+        {
+            printf("Commands:\n 1. about\n 2. test\n 3. exit\n");
+        }
+
+        else
+        {
+            printf("Command not found type help for information\n");
+        }
     }
-    
 
     return 0;
 }
