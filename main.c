@@ -36,8 +36,6 @@ int main(void)
     char *argv[32];
     char cwd[1024];
 
-    printf("Welcome to ZeroSH....\n");
-
     while (1)
     {
         int argc = 0;
