@@ -7,14 +7,14 @@ ZeroSH is a small systems programming project focused on understanding how comma
 ## Features
 
 - [x] Basic interactive prompt
-- [ ] Command-line input handling
-- [ ] Command parsing and argument handling
-- [ ] External command execution
-- [ ] Process creation using `fork()`
-- [ ] Program execution using `execvp()`
-- [ ] Process management using `waitpid()`
-- [ ] Built-in `cd` command
-- [ ] Built-in `exit` command
+- [x] Command-line input handling
+- [x] Command parsing and argument handling
+- [x] External command execution
+- [x] Process creation using `fork()`
+- [x] Program execution using `execvp()`
+- [x] Process management using `waitpid()`
+- [x] Built-in `cd` command
+- [x] Built-in `exit` command
 - [ ] Built-in `help` command
 - [ ] Error handling
 
