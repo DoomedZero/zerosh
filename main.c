@@ -63,6 +63,18 @@ int main(void)
             }
         }
 
+        else if (strcmp(argv[0], "pwd") == 0)
+        {
+            if (getcwd(cwd, sizeof(cwd)) != NULL)
+            {
+                printf("%s\n", cwd);
+            }
+            else if (chdir(argv[1]) == -1)
+            {
+                perror("cd");
+            }
+        }
+
         else if (strcmp(argv[0], "exit") == 0)
         {
             printf("Bye\n");
