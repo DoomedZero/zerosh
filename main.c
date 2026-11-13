@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 int main(void)
 {
 
     char buff[256];
     char *argv[32];
+    char cwd[1024];
 
     printf("Welcome to ZeroSH....\n");
 
@@ -13,7 +15,9 @@ int main(void)
     {
         int argc = 0;
 
-        printf("zerosh>");
+        getcwd(cwd, sizeof(cwd));
+
+        printf("%s>", cwd);
 
         char *input = fgets(buff, sizeof(buff), stdin);
 
@@ -32,16 +36,31 @@ int main(void)
         // This handles  EOF / Ctrl + D
 
         if (input == NULL)
-        {   
+        {
             printf("\n");
             break;
         }
 
         // This handles empty input / Enter
-        
+
         else if (argc == 0)
         {
             continue;
+        }
+
+        // Command: cd
+
+        else if (strcmp(argv[0], "cd") == 0)
+        {
+            if (argc != 2)
+            {
+                printf("Usage: cd <directory> \n");
+            }
+            else if (chdir(argv[1]) == -1)
+            {
+                getcwd(cwd, sizeof(cwd));
+                perror("cd");
+            }
         }
 
         else if (strcmp(argv[0], "exit") == 0)
@@ -69,10 +88,6 @@ int main(void)
         {
             printf("Command not found type help for information\n");
         }
-
-        printf("Argument Count: %d \n", argc);
-        printf("Arguement 1 : %s \n", argv[0]);
-        printf("Arguement 2 : %s \n", argv[1]);
     }
 
     return 0;
