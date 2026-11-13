@@ -15,7 +15,7 @@ int main(void)
 
         printf("zerosh>");
 
-        fgets(buff, sizeof(buff), stdin);
+        char *input = fgets(buff, sizeof(buff), stdin);
 
         char *token = strtok(buff, " \t\n");
 
@@ -29,7 +29,17 @@ int main(void)
 
         argv[argc] = NULL;
 
-        if (argc == 0)
+        // This handles  EOF / Ctrl + D
+
+        if (input == NULL)
+        {   
+            printf("\n");
+            break;
+        }
+
+        // This handles empty input / Enter
+        
+        else if (argc == 0)
         {
             continue;
         }
