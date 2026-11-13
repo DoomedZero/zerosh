@@ -1,6 +1,33 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+void execute_command(char *argv[])
+{
+    pid_t pid = fork();
+
+    if (pid == -1)
+    {
+        perror("fork");
+    }
+
+    else if (pid == 0)
+    {
+        execvp(argv[0], argv);
+
+        perror(argv[0]);
+        _exit(127);
+    }
+
+    else
+    {
+        waitpid(pid, NULL, 0);
+    }
+}
 
 int main(void)
 {
@@ -58,10 +85,11 @@ int main(void)
             }
             else if (chdir(argv[1]) == -1)
             {
-                getcwd(cwd, sizeof(cwd));
                 perror("cd");
             }
         }
+
+        // Command: pwd
 
         else if (strcmp(argv[0], "pwd") == 0)
         {
@@ -69,36 +97,22 @@ int main(void)
             {
                 printf("%s\n", cwd);
             }
-            else if (chdir(argv[1]) == -1)
+            else
             {
-                perror("cd");
+                perror("pwd");
             }
         }
 
+        // Command: exit
+
         else if (strcmp(argv[0], "exit") == 0)
         {
-            printf("Bye\n");
             break;
-        }
-
-        else if (strcmp(argv[0], "test") == 0)
-        {
-            printf("This is a test\n");
-        }
-
-        else if (strcmp(argv[0], "about") == 0)
-        {
-            printf("This is ZeroSH a shell written in C\n");
-        }
-
-        else if (strcmp(argv[0], "help") == 0)
-        {
-            printf("Commands:\n 1. about\n 2. test\n 3. exit\n");
         }
 
         else
         {
-            printf("Command not found type help for information\n");
+            execute_command(argv);
         }
     }
 

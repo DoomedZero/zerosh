@@ -1,8 +1,12 @@
 # Compiled executable
 /zerosh
+/fork_demo
 
 # Object files
 *.o
+
+#dev files
+fork_demo.c
 
 # Core dumps
 core
