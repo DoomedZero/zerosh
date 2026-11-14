@@ -6,6 +6,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <signal.h>
+
+void handle_sigint(int signo)
+{
+    (void)signo;
+}
 
 int execute_command(char *argv[])
 {
@@ -17,8 +23,23 @@ int execute_command(char *argv[])
         return 1;
     }
 
-    else if (pid == 0) // Child process
+    else if (pid == 0) // Child Process
     {
+        // Restores Default Ctrl + C behaviour
+
+        struct sigaction default_action = {0};
+
+        default_action.sa_handler = SIG_DFL;
+        sigemptyset(&default_action.sa_mask);
+
+        if (sigaction(SIGINT, &default_action, NULL) == -1)
+        {
+            perror("sigaction");
+            _exit(126);
+        }
+
+        // Execute commands
+
         execvp(argv[0], argv);
 
         perror(argv[0]);
@@ -33,8 +54,7 @@ int execute_command(char *argv[])
         do
         {
             result = waitpid(pid, &status, 0);
-        } 
-        while (result == -1 && errno == EINTR);
+        } while (result == -1 && errno == EINTR);
 
         if (result == -1)
         {
@@ -48,6 +68,12 @@ int execute_command(char *argv[])
         }
         else if (WIFSIGNALED(status))
         {
+            if (WTERMSIG(status) == SIGINT)
+            {
+                putchar('\n');
+                fflush(stdout);
+            }
+
             return 128 + WTERMSIG(status);
         }
 
@@ -63,30 +89,50 @@ int main(void)
     char cwd[1024];      // Current Working Directory
     int last_status = 0; // Debugging exit status of child processes
 
+    struct sigaction sa = {0}; // Stores signal config
+
+    sa.sa_handler = handle_sigint; // Specifies handler function
+    sigemptyset(&sa.sa_mask);      // Starts empty
+    sa.sa_flags = 0;               // Does not request automatic restart of interrupted system calls
+
+    if (sigaction(SIGINT, &sa, NULL) == -1)
+    {
+        perror("sigaction");
+        return 1;
+    }
+
     while (1)
     {
-        int argc = 0; // Number of input tokens
+        int argc = 0; // Number of input tokens (Resets every loop)
 
         getcwd(cwd, sizeof(cwd));
+        printf("%s> ", cwd);
 
-        printf("%s>", cwd);
-
-        char *input = fgets(buff, sizeof(buff), stdin); // Taking Buff
-
-        // Check input result before parsing
+        errno = 0;
+        char *input = fgets(buff, sizeof(buff), stdin);
 
         if (input == NULL)
         {
+            if (errno == EINTR)
+            {
+                clearerr(stdin);
+                printf("\n");
+                continue;
+            }
+
             if (feof(stdin))
             {
                 printf("\n");
                 break;
             }
-            else if (ferror(stdin))
+
+            if (ferror(stdin))
             {
                 perror("fgets");
                 break;
             }
+
+            break;
         }
 
         char *token = strtok(buff, " \t\n"); // Tokenization
@@ -100,8 +146,9 @@ int main(void)
 
             token = strtok(NULL, " \t\n");
         }
-
         argv[argc] = NULL; // Termination of stacked tokens
+
+        // REPL: Starts
 
         if (argc == 0) // Empty input / Enter
         {
