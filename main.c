@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 void execute_command(char *argv[])
 {
@@ -26,7 +27,18 @@ void execute_command(char *argv[])
 
     else
     {
-        waitpid(pid, NULL, 0);
+        pid_t result;
+
+        do
+        {
+            result = waitpid(pid, NULL, 0);
+        } while (result == -1 && errno == EINTR);
+
+        if (result == -1)
+        {
+            perror("waitpid");
+            return;
+        }
     }
 }
 
