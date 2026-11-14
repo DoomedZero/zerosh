@@ -2,13 +2,53 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "input.h"
+#include "history.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <termios.h>
 #include <errno.h>
-#include <string.h>
-#include "history.h"
+#include <stdlib.h>
+
+static void redraw_line(
+    const char *prompt,
+    const char *buffer,
+    size_t cursor)
+{
+    size_t len = strlen(buffer);
+
+    printf("\r\033[2K%s%s", prompt, buffer);
+
+    if (cursor < len)
+    {
+        printf("\033[%zuD", len - cursor);
+    }
+
+    fflush(stdout);
+}
+
+static void replace_buffer(
+    char *buffer,
+    size_t size,
+    size_t *len,
+    size_t *cursor,
+    const char *text)
+{
+    size_t copy_len = strlen(text);
+
+    if (copy_len >= size)
+    {
+        copy_len = size - 1;
+    }
+
+    memcpy(buffer, text, copy_len);
+
+    buffer[copy_len] = '\0';
+
+    *len = copy_len;
+    *cursor = copy_len;
+}
 
 static void display_line(
     const char *prompt,
@@ -23,15 +63,25 @@ int read_line(const char *prompt, char *buffer, size_t size)
     struct termios original, input_mode;
 
     size_t len = 0;
+    size_t cursor = 0;
+
     int result = 1;
     int escape_state = 0;
-    int up_detected = 0;
-    int down_detected = 0;
+
     size_t history_index = history_count();
+
+    int browsing_history = 0;
 
     if (size == 0)
     {
         errno = EINVAL;
+        return -1;
+    }
+
+    char *draft = malloc(size);
+
+    if (draft == NULL)
+    {
         return -1;
     }
 
@@ -82,14 +132,14 @@ int read_line(const char *prompt, char *buffer, size_t size)
             break;
         }
 
-        // First byte: ESC
+        // ESC received
         if (escape_state == 1)
         {
             escape_state = (ch == '[') ? 2 : 0;
             continue;
         }
 
-        // Third byte: identify arrow key
+        // Identify the key after ESC [
         if (escape_state == 2)
         {
             escape_state = 0;
@@ -97,27 +147,32 @@ int read_line(const char *prompt, char *buffer, size_t size)
             // UP ARROW
             if (ch == 'A')
             {
-                if (history_index > 0)
+                size_t count = history_count();
+
+                if (count > 0)
                 {
-                    history_index--;
-
-                    const char *command = history_get(history_index);
-
-                    if (command != NULL)
+                    // Save current input before browsing
+                    if (!browsing_history)
                     {
-                        size_t command_len = strlen(command);
+                        memcpy(draft, buffer, len + 1);
 
-                        if (command_len >= size)
+                        history_index = count;
+                        browsing_history = 1;
+                    }
+
+                    if (history_index > 0)
+                    {
+                        history_index--;
+
+                        const char *command = history_get(history_index);
+
+                        if (command != NULL)
                         {
-                            command_len = size - 1;
+                            replace_buffer(
+                                buffer, size, &len, &cursor, command);
+
+                            redraw_line(prompt, buffer, cursor);
                         }
-
-                        memcpy(buffer, command, command_len);
-                        buffer[command_len] = '\0';
-
-                        len = command_len;
-
-                        display_line(prompt, buffer);
                     }
                 }
             }
@@ -125,38 +180,98 @@ int read_line(const char *prompt, char *buffer, size_t size)
             // DOWN ARROW
             else if (ch == 'B')
             {
-                if (history_index < history_count())
+                if (browsing_history)
                 {
-                    history_index++;
+                    size_t count = history_count();
 
-                    if (history_index == history_count())
+                    if (history_index + 1 < count)
                     {
-                        // Return to an empty input line
-                        buffer[0] = '\0';
-                        len = 0;
-                    }
-                    else
-                    {
+                        history_index++;
+
                         const char *command = history_get(history_index);
 
                         if (command != NULL)
                         {
-                            size_t command_len = strlen(command);
-
-                            if (command_len >= size)
-                            {
-                                command_len = size - 1;
-                            }
-
-                            memcpy(buffer, command, command_len);
-                            buffer[command_len] = '\0';
-
-                            len = command_len;
+                            replace_buffer(
+                                buffer, size, &len, &cursor, command);
                         }
                     }
+                    else
+                    {
+                        history_index = count;
 
-                    display_line(prompt, buffer);
+                        // Restore the input typed before pressing UP
+                        replace_buffer(
+                            buffer, size, &len, &cursor, draft);
+
+                        browsing_history = 0;
+                    }
+
+                    redraw_line(prompt, buffer, cursor);
                 }
+            }
+
+            // RIGHT ARROW
+            else if (ch == 'C')
+            {
+                if (cursor < len)
+                {
+                    cursor++;
+                    redraw_line(prompt, buffer, cursor);
+                }
+            }
+
+            // LEFT ARROW
+            else if (ch == 'D')
+            {
+                if (cursor > 0)
+                {
+                    cursor--;
+                    redraw_line(prompt, buffer, cursor);
+                }
+            }
+
+            // HOME
+            else if (ch == 'H')
+            {
+                cursor = 0;
+                redraw_line(prompt, buffer, cursor);
+            }
+
+            // END
+            else if (ch == 'F')
+            {
+                cursor = len;
+                redraw_line(prompt, buffer, cursor);
+            }
+
+            // Delete sequence begins with ESC [ 3 ~
+            else if (ch == '3')
+            {
+                escape_state = 3;
+            }
+
+            continue;
+        }
+
+        // Complete Delete sequence
+        if (escape_state == 3)
+        {
+            escape_state = 0;
+
+            if (ch == '~' && cursor < len)
+            {
+                memmove(
+                    buffer + cursor,
+                    buffer + cursor + 1,
+                    len - cursor);
+
+                len--;
+
+                browsing_history = 0;
+                history_index = history_count();
+
+                redraw_line(prompt, buffer, cursor);
             }
 
             continue;
@@ -181,17 +296,6 @@ int read_line(const char *prompt, char *buffer, size_t size)
         if (ch == '\n' || ch == '\r')
         {
             putchar('\n');
-
-            if (up_detected)
-            {
-                printf("[DEBUG] Up arrow detected\n");
-            }
-
-            if (down_detected)
-            {
-                printf("[DEBUG] Down arrow detected\n");
-            }
-
             result = 1;
             break;
         }
@@ -199,13 +303,20 @@ int read_line(const char *prompt, char *buffer, size_t size)
         // Backspace
         if (ch == 127 || ch == 8)
         {
-            if (len > 0)
+            if (cursor > 0)
             {
-                len--;
-                buffer[len] = '\0';
+                memmove(
+                    buffer + cursor - 1,
+                    buffer + cursor,
+                    len - cursor + 1);
 
-                printf("\b \b");
-                fflush(stdout);
+                cursor--;
+                len--;
+
+                browsing_history = 0;
+                history_index = history_count();
+
+                redraw_line(prompt, buffer, cursor);
             }
 
             continue;
@@ -216,17 +327,28 @@ int read_line(const char *prompt, char *buffer, size_t size)
         {
             if (len < size - 1)
             {
-                buffer[len++] = ch;
-                buffer[len] = '\0';
+                memmove(
+                    buffer + cursor + 1,
+                    buffer + cursor,
+                    len - cursor + 1);
 
-                putchar(ch);
-                fflush(stdout);
+                buffer[cursor] = ch;
+
+                cursor++;
+                len++;
+
+                browsing_history = 0;
+                history_index = history_count();
+
+                redraw_line(prompt, buffer, cursor);
             }
             else
             {
                 putchar('\a');
                 fflush(stdout);
             }
+
+            continue;
         }
     }
 
@@ -240,6 +362,7 @@ int read_line(const char *prompt, char *buffer, size_t size)
 
     if (result == -1)
     {
+        free(draft);
         errno = saved_errno;
         return -1;
     }
@@ -250,6 +373,7 @@ int read_line(const char *prompt, char *buffer, size_t size)
     }
 
     buffer[len] = '\0';
+    free(draft);
 
     return result;
 }
