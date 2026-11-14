@@ -46,6 +46,22 @@ int main(void)
 
         char *input = fgets(buff, sizeof(buff), stdin);
 
+        // Check input result before parsing
+        
+        if (input == NULL)
+        {
+            if (feof(stdin))
+            {
+                printf("\n");
+                break;
+            }
+            else if (ferror(stdin))
+            {
+                perror("fgets");
+                break;
+            }
+        }
+
         char *token = strtok(buff, " \t\n");
 
         while (token != NULL && argc < 31)
@@ -58,17 +74,9 @@ int main(void)
 
         argv[argc] = NULL;
 
-        // This handles  EOF / Ctrl + D
-
-        if (input == NULL)
-        {
-            printf("\n");
-            break;
-        }
-
         // This handles empty input / Enter
 
-        else if (argc == 0)
+        if (argc == 0)
         {
             continue;
         }
@@ -101,8 +109,8 @@ int main(void)
             }
         }
 
-        //Command: help
-        
+        // Command: help
+
         else if (strcmp(argv[0], "help") == 0)
         {
             printf("Built in commands: \n");
@@ -112,7 +120,6 @@ int main(void)
             printf("External commands: \n");
             printf(" git\n python\n node\n npm\n");
         }
-        
 
         // Command: exit
 
