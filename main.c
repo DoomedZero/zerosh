@@ -9,6 +9,7 @@
 #include <signal.h>
 #include "execute.h"
 #include "input.h"
+#include "history.h"
 
 void handle_sigint(int signo)
 {
@@ -67,6 +68,10 @@ int main(void)
         {
             continue;
         }
+
+        // Add buff to history
+
+        history_add(buff);
 
         char *token = strtok(buff, " \t\n"); // Tokenization
 
