@@ -101,6 +101,19 @@ int main(void)
             }
         }
 
+        //Command: help
+        
+        else if (strcmp(argv[0], "help") == 0)
+        {
+            printf("Built in commands: \n");
+            printf(" exit\n help\n cd\n pwd\n");
+            printf("Internal commands: \n");
+            printf(" mkdir\n ls\n rmdir\n cat\n");
+            printf("External commands: \n");
+            printf(" git\n python\n node\n npm\n");
+        }
+        
+
         // Command: exit
 
         else if (strcmp(argv[0], "exit") == 0)
