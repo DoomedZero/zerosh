@@ -2,21 +2,26 @@
 
 **A minimal Unix-like command-line shell written in C.**
 
-ZeroSH is a small systems programming project focused on understanding how command-line shells interact with the Linux operating system.
+ZeroSH is a small systems programming project to explore, POSIX, GNU/LINUX Shell, and how these commands work under the hood.
+This project was started me thinking- "How hard it can be ?!" and my state right now is
+"HOW HARD IT CAN BE!!?? T.T"
+
+## Terra Reviewers
+
+- My C expierence helped me till adding FORK functionality in ZeroSH after that I had to use AI as assistant/tutor as I was out of ideas and code that it would need.
+- AI was used as a tutor/assistant in website, portion of project contain directly copied code snippets and functions.
 
 ## Features
 
-- [x] Basic interactive prompt
-- [x] Command-line input handling
-- [x] Command parsing and argument handling
-- [x] External command execution
-- [x] Process creation using `fork()`
-- [x] Program execution using `execvp()`
-- [x] Process management using `waitpid()`
-- [x] Built-in `cd` command
-- [x] Built-in `exit` command
-- [ ] Built-in `help` command
-- [ ] Error handling
+1. Display an interactive prompt.
+2. Read and parse user commands.
+3. Support built-in commands.
+4. Manage child processes.
+5. Execute external Linux programs.
+6. Handle errors and terminate gracefully.
+7. Compartmentalization of ZeroSH
+8. command history using arrow keys
+9. Command editing using arrow keys
 
 ## Technology
 
@@ -40,6 +45,10 @@ gcc -std=c17 -Wall -Wextra -Wpedantic -g main.c execute.c input.c history.c -o z
 ```bash
 ./zerosh
 ```
+
+## How to use?
+This is a normal shell, You can try running commands you know
+or try run help, and you will get list of commands you can try
 
 ## Current Status
 
