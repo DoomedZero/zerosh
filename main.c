@@ -259,8 +259,15 @@ int main(void)
     {
         int argc = 0; // Number of input tokens (Resets every loop)
 
-        getcwd(cwd, sizeof(cwd));
-        printf("%s> ", cwd);
+        if (getcwd(cwd, sizeof(cwd)) != NULL)
+        {
+            printf("%s> ", cwd);
+        }
+        else
+        {
+            perror("getcwd");
+            printf("zerosh> ");
+        }
         fflush(stdout);
 
         int input_result = read_line(buff, sizeof(buff));
