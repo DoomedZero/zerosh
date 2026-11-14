@@ -7,6 +7,7 @@
 4. Manage child processes.
 5. Support built-in commands.
 6. Handle errors and terminate gracefully.
+7. Compartmentalization of ZeroSH
 
 ## Features Planned
-7. command history using arrow keys
+8. command history using arrow keys
