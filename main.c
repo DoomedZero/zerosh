@@ -7,17 +7,17 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-void execute_command(char *argv[])
+int execute_command(char *argv[])
 {
     pid_t pid = fork();
 
-    if (pid == -1)
+    if (pid == -1) // Error creating process
     {
         perror("fork");
-        return;
+        return 1;
     }
 
-    else if (pid == 0)
+    else if (pid == 0) // Child process
     {
         execvp(argv[0], argv);
 
@@ -25,39 +25,53 @@ void execute_command(char *argv[])
         _exit(127);
     }
 
-    else
+    else // Parent process
     {
+        int status; // Status is used to store encoded termination information
         pid_t result;
 
         do
         {
-            result = waitpid(pid, NULL, 0);
-        } while (result == -1 && errno == EINTR);
+            result = waitpid(pid, &status, 0);
+        } 
+        while (result == -1 && errno == EINTR);
 
         if (result == -1)
         {
             perror("waitpid");
-            return;
+            return 1;
         }
+
+        if (WIFEXITED(status))
+        {
+            return WEXITSTATUS(status);
+        }
+        else if (WIFSIGNALED(status))
+        {
+            return 128 + WTERMSIG(status);
+        }
+
+        return 1;
     }
 }
 
 int main(void)
 {
 
-    char buff[256];
-    char *argv[32];
-    char cwd[1024];
+    char buff[256];      // Input buff to be tokenized
+    char *argv[32];      // Tokens
+    char cwd[1024];      // Current Working Directory
+    int last_status = 0; // Debugging exit status of child processes
 
     while (1)
     {
-        int argc = 0;
+        int argc = 0; // Number of input tokens
 
         getcwd(cwd, sizeof(cwd));
 
         printf("%s>", cwd);
 
-        char *input = fgets(buff, sizeof(buff), stdin);
+        char *input = fgets(buff, sizeof(buff), stdin); // Taking Buff
 
         // Check input result before parsing
 
@@ -75,7 +89,9 @@ int main(void)
             }
         }
 
-        char *token = strtok(buff, " \t\n");
+        char *token = strtok(buff, " \t\n"); // Tokenization
+
+        // Stacking tokens
 
         while (token != NULL && argc < 31)
         {
@@ -85,11 +101,9 @@ int main(void)
             token = strtok(NULL, " \t\n");
         }
 
-        argv[argc] = NULL;
+        argv[argc] = NULL; // Termination of stacked tokens
 
-        // This handles empty input / Enter
-
-        if (argc == 0)
+        if (argc == 0) // Empty input / Enter
         {
             continue;
         }
@@ -128,10 +142,8 @@ int main(void)
         {
             printf("Built in commands: \n");
             printf(" exit\n help\n cd\n pwd\n");
-            printf("Internal commands: \n");
+            printf("Forked commands: \n");
             printf(" mkdir\n ls\n rmdir\n cat\n");
-            printf("External commands: \n");
-            printf(" git\n python\n node\n npm\n");
         }
 
         // Command: exit
@@ -141,9 +153,18 @@ int main(void)
             break;
         }
 
+        // Command: status
+
+        else if (strcmp(argv[0], "status") == 0)
+        {
+            printf("Last exit status: %d\n", last_status);
+        }
+
+        // Forked Commands
+
         else
         {
-            execute_command(argv);
+            last_status = execute_command(argv);
         }
     }
 
