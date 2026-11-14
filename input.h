@@ -4,6 +4,6 @@
 
 #include <stddef.h>
 
-int read_line(char *buffer, size_t size);
+int read_line(const char *prompt, char *buffer, size_t size);
 
 #endif

@@ -40,18 +40,21 @@ int main(void)
     {
         int argc = 0; // Number of input tokens (Resets every loop)
 
+        char prompt[1100];
+
         if (getcwd(cwd, sizeof(cwd)) != NULL)
         {
-            printf("%s> ", cwd);
+            snprintf(prompt, sizeof(prompt), "%s> ", cwd);
         }
         else
         {
-            perror("getcwd");
-            printf("zerosh> ");
+            snprintf(prompt, sizeof(prompt), "zerosh> ");
         }
+
+        printf("%s", prompt);
         fflush(stdout);
 
-        int input_result = read_line(buff, sizeof(buff));
+        int input_result = read_line(prompt, buff, sizeof(buff));
 
         if (input_result == 0)
         {

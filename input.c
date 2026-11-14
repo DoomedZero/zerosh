@@ -7,14 +7,27 @@
 #include <unistd.h>
 #include <termios.h>
 #include <errno.h>
+#include <string.h>
+#include "history.h"
 
-int read_line(char *buffer, size_t size)
+static void display_line(
+    const char *prompt,
+    const char *buffer)
+{
+    printf("\r\033[2K%s%s", prompt, buffer);
+    fflush(stdout);
+}
+
+int read_line(const char *prompt, char *buffer, size_t size)
 {
     struct termios original, input_mode;
 
     size_t len = 0;
     int result = 1;
     int escape_state = 0;
+    int up_detected = 0;
+    int down_detected = 0;
+    size_t history_index = history_count();
 
     if (size == 0)
     {
@@ -69,19 +82,87 @@ int read_line(char *buffer, size_t size)
             break;
         }
 
-        // Ignore escape sequences for now
+        // First byte: ESC
         if (escape_state == 1)
         {
             escape_state = (ch == '[') ? 2 : 0;
             continue;
         }
 
+        // Third byte: identify arrow key
         if (escape_state == 2)
         {
             escape_state = 0;
+
+            // UP ARROW
+            if (ch == 'A')
+            {
+                if (history_index > 0)
+                {
+                    history_index--;
+
+                    const char *command = history_get(history_index);
+
+                    if (command != NULL)
+                    {
+                        size_t command_len = strlen(command);
+
+                        if (command_len >= size)
+                        {
+                            command_len = size - 1;
+                        }
+
+                        memcpy(buffer, command, command_len);
+                        buffer[command_len] = '\0';
+
+                        len = command_len;
+
+                        display_line(prompt, buffer);
+                    }
+                }
+            }
+
+            // DOWN ARROW
+            else if (ch == 'B')
+            {
+                if (history_index < history_count())
+                {
+                    history_index++;
+
+                    if (history_index == history_count())
+                    {
+                        // Return to an empty input line
+                        buffer[0] = '\0';
+                        len = 0;
+                    }
+                    else
+                    {
+                        const char *command = history_get(history_index);
+
+                        if (command != NULL)
+                        {
+                            size_t command_len = strlen(command);
+
+                            if (command_len >= size)
+                            {
+                                command_len = size - 1;
+                            }
+
+                            memcpy(buffer, command, command_len);
+                            buffer[command_len] = '\0';
+
+                            len = command_len;
+                        }
+                    }
+
+                    display_line(prompt, buffer);
+                }
+            }
+
             continue;
         }
 
+        // Detect ESC
         if (ch == 27)
         {
             escape_state = 1;
@@ -100,6 +181,17 @@ int read_line(char *buffer, size_t size)
         if (ch == '\n' || ch == '\r')
         {
             putchar('\n');
+
+            if (up_detected)
+            {
+                printf("[DEBUG] Up arrow detected\n");
+            }
+
+            if (down_detected)
+            {
+                printf("[DEBUG] Down arrow detected\n");
+            }
+
             result = 1;
             break;
         }
