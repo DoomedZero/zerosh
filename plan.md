@@ -6,7 +6,7 @@
 3. Execute external Linux programs.
 4. Manage child processes.
 5. Support built-in commands.
+6. Handle errors and terminate gracefully.
 
 ## Features Planned
-6. Handle errors and terminate gracefully.
 7. command history using arrow keys
