@@ -13,6 +13,7 @@ void execute_command(char *argv[])
     if (pid == -1)
     {
         perror("fork");
+        return;
     }
 
     else if (pid == 0)
@@ -47,7 +48,7 @@ int main(void)
         char *input = fgets(buff, sizeof(buff), stdin);
 
         // Check input result before parsing
-        
+
         if (input == NULL)
         {
             if (feof(stdin))
