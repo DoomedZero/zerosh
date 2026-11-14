@@ -32,7 +32,7 @@ Clone the repository and navigate to the project directory.
 Compile using:
 
 ```bash
-gcc -std=c17 -Wall -Wextra -Wpedantic -g main.c execute.c -o zerosh
+gcc -std=c17 -Wall -Wextra -Wpedantic -g main.c execute.c input.c -o zerosh
 ```
 
 ## Execution
