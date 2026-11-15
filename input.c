@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
+// Redraw the prompt and current input
 static void redraw_line(
     const char *prompt,
     const char *buffer,
@@ -28,6 +29,7 @@ static void redraw_line(
     fflush(stdout);
 }
 
+// Replace current input with another string
 static void replace_buffer(
     char *buffer,
     size_t size,
@@ -43,34 +45,43 @@ static void replace_buffer(
     }
 
     memcpy(buffer, text, copy_len);
-
     buffer[copy_len] = '\0';
 
     *len = copy_len;
     *cursor = copy_len;
 }
 
-int read_line(const char *prompt, char *buffer, size_t size)
+int read_line(
+    const char *prompt,
+    char *buffer,
+    size_t size)
 {
-    struct termios original, input_mode;
+    struct termios original;
+    struct termios input_mode;
 
     size_t len = 0;
     size_t cursor = 0;
 
-    int result = 1;
-    int escape_state = 0;
-
     size_t history_index = history_count();
 
+    int result = 1;
+    int escape_state = 0;
     int browsing_history = 0;
 
-    if (size == 0)
+    int terminal_changed = 0;
+    int saved_errno = 0;
+
+    char *draft = NULL;
+
+    // Validate arguments
+    if (prompt == NULL || buffer == NULL || size == 0)
     {
         errno = EINVAL;
         return -1;
     }
 
-    char *draft = malloc(size);
+    // Allocate temporary input storage
+    draft = malloc(size);
 
     if (draft == NULL)
     {
@@ -80,7 +91,8 @@ int read_line(const char *prompt, char *buffer, size_t size)
     // Save original terminal settings
     if (tcgetattr(STDIN_FILENO, &original) == -1)
     {
-        return -1;
+        result = -1;
+        goto cleanup;
     }
 
     input_mode = original;
@@ -94,11 +106,15 @@ int read_line(const char *prompt, char *buffer, size_t size)
 
     if (tcsetattr(STDIN_FILENO, TCSANOW, &input_mode) == -1)
     {
-        return -1;
+        result = -1;
+        goto cleanup;
     }
+
+    terminal_changed = 1;
 
     buffer[0] = '\0';
 
+    // Main input loop
     while (1)
     {
         char ch;
@@ -131,7 +147,7 @@ int read_line(const char *prompt, char *buffer, size_t size)
             continue;
         }
 
-        // Identify the key after ESC [
+        // Identify key after ESC [
         if (escape_state == 2)
         {
             escape_state = 0;
@@ -143,7 +159,6 @@ int read_line(const char *prompt, char *buffer, size_t size)
 
                 if (count > 0)
                 {
-                    // Save current input before browsing
                     if (!browsing_history)
                     {
                         memcpy(draft, buffer, len + 1);
@@ -156,12 +171,18 @@ int read_line(const char *prompt, char *buffer, size_t size)
                     {
                         history_index--;
 
-                        const char *command = history_get(history_index);
+                        const char *command =
+                            history_get(history_index);
 
                         if (command != NULL)
                         {
                             replace_buffer(
-                                buffer, size, &len, &cursor, command);
+                                buffer,
+                                size,
+                                &len,
+                                &cursor,
+                                command
+                            );
 
                             redraw_line(prompt, buffer, cursor);
                         }
@@ -180,21 +201,32 @@ int read_line(const char *prompt, char *buffer, size_t size)
                     {
                         history_index++;
 
-                        const char *command = history_get(history_index);
+                        const char *command =
+                            history_get(history_index);
 
                         if (command != NULL)
                         {
                             replace_buffer(
-                                buffer, size, &len, &cursor, command);
+                                buffer,
+                                size,
+                                &len,
+                                &cursor,
+                                command
+                            );
                         }
                     }
                     else
                     {
                         history_index = count;
 
-                        // Restore the input typed before pressing UP
+                        // Restore previously typed input
                         replace_buffer(
-                            buffer, size, &len, &cursor, draft);
+                            buffer,
+                            size,
+                            &len,
+                            &cursor,
+                            draft
+                        );
 
                         browsing_history = 0;
                     }
@@ -237,7 +269,7 @@ int read_line(const char *prompt, char *buffer, size_t size)
                 redraw_line(prompt, buffer, cursor);
             }
 
-            // Delete sequence begins with ESC [ 3 ~
+            // DELETE sequence starts with ESC [ 3 ~
             else if (ch == '3')
             {
                 escape_state = 3;
@@ -246,7 +278,7 @@ int read_line(const char *prompt, char *buffer, size_t size)
             continue;
         }
 
-        // Complete Delete sequence
+        // Complete DELETE sequence
         if (escape_state == 3)
         {
             escape_state = 0;
@@ -256,7 +288,8 @@ int read_line(const char *prompt, char *buffer, size_t size)
                 memmove(
                     buffer + cursor,
                     buffer + cursor + 1,
-                    len - cursor);
+                    len - cursor
+                );
 
                 len--;
 
@@ -284,7 +317,7 @@ int read_line(const char *prompt, char *buffer, size_t size)
             break;
         }
 
-        // Enter
+        // ENTER
         if (ch == '\n' || ch == '\r')
         {
             putchar('\n');
@@ -292,7 +325,7 @@ int read_line(const char *prompt, char *buffer, size_t size)
             break;
         }
 
-        // Backspace
+        // BACKSPACE
         if (ch == 127 || ch == 8)
         {
             if (cursor > 0)
@@ -300,7 +333,8 @@ int read_line(const char *prompt, char *buffer, size_t size)
                 memmove(
                     buffer + cursor - 1,
                     buffer + cursor,
-                    len - cursor + 1);
+                    len - cursor + 1
+                );
 
                 cursor--;
                 len--;
@@ -322,7 +356,8 @@ int read_line(const char *prompt, char *buffer, size_t size)
                 memmove(
                     buffer + cursor + 1,
                     buffer + cursor,
-                    len - cursor + 1);
+                    len - cursor + 1
+                );
 
                 buffer[cursor] = ch;
 
@@ -344,14 +379,23 @@ int read_line(const char *prompt, char *buffer, size_t size)
         }
     }
 
-    // Restore original terminal settings
-    int saved_errno = errno;
+// Common cleanup section
+cleanup:
 
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &original) == -1)
+    // Preserve errno before attempting terminal restoration
+    saved_errno = errno;
+
+    // Restore original terminal settings if they were changed
+    if (terminal_changed)
     {
-        return -1;
+        if (tcsetattr(STDIN_FILENO, TCSANOW, &original) == -1)
+        {
+            saved_errno = errno;
+            result = -1;
+        }
     }
 
+    // Handle errors
     if (result == -1)
     {
         free(draft);
@@ -359,12 +403,15 @@ int read_line(const char *prompt, char *buffer, size_t size)
         return -1;
     }
 
+    // Handle Ctrl+C
     if (result == 2)
     {
         printf("^C\n");
     }
 
     buffer[len] = '\0';
+
+    // Release temporary memory
     free(draft);
 
     return result;
