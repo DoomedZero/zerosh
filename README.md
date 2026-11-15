@@ -43,6 +43,14 @@ Compile using:
 gcc -std=c17 -Wall -Wextra -Wpedantic -g main.c execute.c input.c history.c -o zerosh
 ```
 
+or:
+
+Use make command in project root directory
+
+```bash
+make
+```
+
 ## Execution
 
 ```bash
