@@ -1,11 +1,9 @@
-# Compiled executable
+# Compiled binaries
 /zerosh
 
 # Object files
 *.o
 
-# Core dumps
+# Debugging artifacts
 core
-
-# Build directory
-/build/
+core.*
