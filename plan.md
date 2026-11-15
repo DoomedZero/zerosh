@@ -14,3 +14,6 @@
 
 ## Features Planned
 11. Pipes
+12. Error message Can't find "file/directory" -> "Command"
+13. Command suggestions
+14. Better Help command
