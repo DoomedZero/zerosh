@@ -1,10 +1,9 @@
 # ZeroSH
 
 **A minimal Unix-like command-line shell written in C.**
+**Currently Works/Tested in Linux only**
 
 ZeroSH is a small systems programming project to explore, POSIX, GNU/LINUX Shell, and how these commands work under the hood.
-This project was started me thinking- "How hard it can be ?!" and my state right now is
-"HOW HARD IT CAN BE!!?? T.T"
 
 ## Terra Reviewers
 
@@ -12,6 +11,13 @@ This project was started me thinking- "How hard it can be ?!" and my state right
 - AI was used as a tutor/assistant in website, portion of project contain directly copied code snippets and functions with
 little changes
 - When the project felt like "It is going a little beyond my level", I stopped (at persistent history).
+
+## Technology
+
+- **Language:** C
+- **Standard:** C17
+- **Compiler:** GCC
+- **Platform:** GNU/Linux (Development on Fedora and Arch)
 
 ## Features
 
@@ -25,13 +31,6 @@ little changes
 8. command history using arrow keys
 9. Command editing using arrow keys
 10. Presistent history
-
-## Technology
-
-- **Language:** C
-- **Standard:** C17
-- **Compiler:** GCC
-- **Platform:** GNU/Linux (Development on Fedora and Arch)
 
 ## Compilation
 
