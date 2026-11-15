@@ -11,7 +11,8 @@ ZeroSH is a small systems programming project to explore, POSIX, GNU/LINUX Shell
 - My little experience in C helped me till adding external command execution (Fork) functionality in ZeroSH, After that,
 - AI was used as a tutor/assistant in website, portion of project contain directly copied code snippets and functions with
 little changes
-- When the project felt like "It is going a little beyond my level", I stopped (at persistent history).
+- The number of feature from where I started using AI is 6.5
+- (What does 6.5 mean? - I decided the feature and everything and it helped me to make header files)
 - Testing Directly from musl.tar.gz is recommened, you can compile too (GCC/Make)
 
 
