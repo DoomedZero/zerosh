@@ -1,9 +1,12 @@
 # Compiled binaries
 /zerosh
 
+# Distribution artifacts
+/dist/
+/release/
+
 # Object files
 *.o
 
-# Debugging artifacts
-core
-core.*
+# Temporary test programs
+/history_test
