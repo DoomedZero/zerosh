@@ -7,30 +7,41 @@ ZeroSH is a small systems programming project to explore, POSIX, GNU/LINUX Shell
 
 ## Terra Reviewers
 
+- Linux only Project
 - My little experience in C helped me till adding external command execution (Fork) functionality in ZeroSH, After that,
 - AI was used as a tutor/assistant in website, portion of project contain directly copied code snippets and functions with
 little changes
 - When the project felt like "It is going a little beyond my level", I stopped (at persistent history).
+- Testing Directly from musl.tar.gz is recommened, you can compile too (GCC/Make)
 
-## Technology
 
-- **Language:** C
-- **Standard:** C17
-- **Compiler:** GCC
-- **Platform:** GNU/Linux (Development on Fedora and Arch)
+## Testing
 
-## Features
+1. Download the linux-x86-64 file from release (you can also download checksum file)
 
-1. Display an interactive prompt
-2. Read and parse user commands
-3. Support built-in commands
-4. Manage child processes
-5. Execute external Linux programs
-6. Handle errors and terminate gracefully
-7. Compartmentalization of ZeroSH
-8. command history using arrow keys
-9. Command editing using arrow keys
-10. Presistent history
+2. Go to the directory where files are downloaded (usually downloads)
+
+3. Optional- run checksum
+
+```bash
+sha256sum -c SHA256SUMS.txt
+```
+Expected Output:
+```bash
+zerosh-v1.0.0-linux-x86_64-musl.tar.gz: OK
+```
+
+4. Then extract the file and change your directory to the executable's directory
+```bash
+tar -xzf zerosh-v1.0.0-linux-x86_64-musl.tar.gz
+cd zerosh-linux-x86_64
+```
+
+5. Execute
+```bash
+chmod +x zerosh
+./zerosh
+```
 
 ## Compilation
 
@@ -55,6 +66,26 @@ make
 ```bash
 ./zerosh
 ```
+
+## Technology
+
+- **Language:** C
+- **Standard:** C17
+- **Compiler:** GCC
+- **Platform:** GNU/Linux (Development on Fedora and Arch)
+
+## Features
+
+1. Display an interactive prompt
+2. Read and parse user commands
+3. Support built-in commands
+4. Manage child processes
+5. Execute external Linux programs
+6. Handle errors and terminate gracefully
+7. Compartmentalization of ZeroSH
+8. command history using arrow keys
+9. Command editing using arrow keys
+10. Presistent history
 
 ## How to use?
 This is a normal shell, You can try running commands you know
