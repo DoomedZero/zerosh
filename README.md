@@ -8,27 +8,30 @@ This project was started me thinking- "How hard it can be ?!" and my state right
 
 ## Terra Reviewers
 
-- My C expierence helped me till adding FORK functionality in ZeroSH after that I had to use AI as assistant/tutor as I was out of ideas and code that it would need.
-- AI was used as a tutor/assistant in website, portion of project contain directly copied code snippets and functions.
+- My little experience in C helped me till adding external command execution (Fork) functionality in ZeroSH, After that,
+- AI was used as a tutor/assistant in website, portion of project contain directly copied code snippets and functions with
+little changes
+- When the project felt like "It is going a little beyond my level", I stopped (at persistent history).
 
 ## Features
 
-1. Display an interactive prompt.
-2. Read and parse user commands.
-3. Support built-in commands.
-4. Manage child processes.
-5. Execute external Linux programs.
-6. Handle errors and terminate gracefully.
+1. Display an interactive prompt
+2. Read and parse user commands
+3. Support built-in commands
+4. Manage child processes
+5. Execute external Linux programs
+6. Handle errors and terminate gracefully
 7. Compartmentalization of ZeroSH
 8. command history using arrow keys
 9. Command editing using arrow keys
+10. Presistent history
 
 ## Technology
 
 - **Language:** C
 - **Standard:** C17
 - **Compiler:** GCC
-- **Platform:** GNU/Linux (Developement on Fedora and Arch)
+- **Platform:** GNU/Linux (Development on Fedora and Arch)
 
 ## Compilation
 
@@ -52,7 +55,7 @@ or try run help, and you will get list of commands you can try
 
 ## Current Status
 
-ZeroSH is under active development. The current prototype has a basic interactive prompt and input loop. Command parsing and operating-system process integration are planned.
+ZeroSH is under development. The current state is a basic shell, with command parsing, process creation, execution, signals, command editing and persistent history.
 
 
 ## Learning Objectives
@@ -63,7 +66,3 @@ ZeroSH is under active development. The current prototype has a basic interactiv
 - POSIX system calls
 - Linux command execution
 - Debugging and error handling
-
----
-
-**ZeroSH**
