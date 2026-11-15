@@ -57,6 +57,11 @@ or try run help, and you will get list of commands you can try
 
 ZeroSH is under development. The current state is a basic shell, with command parsing, process creation, execution, signals, command editing and persistent history.
 
+## Persistent Histroy
+The in-memory history is limited to 100 entries, but the disk file grows indefinitely.
+the file created for persistent histroy is in root directory...
+~/.zerosh_history
+
 
 ## Learning Objectives
 
