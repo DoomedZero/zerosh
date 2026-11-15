@@ -36,6 +36,11 @@ int main(void)
         return 1;
     }
 
+    if (history_load() == -1)
+    {
+        perror("history_load");
+    }
+
     while (1)
     {
         int argc = 0; // Number of input tokens (Resets every loop)
@@ -74,7 +79,10 @@ int main(void)
 
         // Add buff to history
 
-        history_add(buff);
+        if (history_add(buff) == -1)
+        {
+            perror("history_add");
+        }
 
         char *token = strtok(buff, " \t\n"); // Tokenization
 
