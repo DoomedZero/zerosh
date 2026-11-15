@@ -50,14 +50,6 @@ static void replace_buffer(
     *cursor = copy_len;
 }
 
-static void display_line(
-    const char *prompt,
-    const char *buffer)
-{
-    printf("\r\033[2K%s%s", prompt, buffer);
-    fflush(stdout);
-}
-
 int read_line(const char *prompt, char *buffer, size_t size)
 {
     struct termios original, input_mode;
