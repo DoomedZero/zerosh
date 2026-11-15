@@ -59,7 +59,7 @@ ZeroSH is under development. The current state is a basic shell, with command pa
 
 ## Persistent Histroy
 The in-memory history is limited to 100 entries, but the disk file grows indefinitely.
-the file created for persistent histroy is in root directory...
+the file created for persistent histroy is in home directory...
 ~/.zerosh_history
 
 
